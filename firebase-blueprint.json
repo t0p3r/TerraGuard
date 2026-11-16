@@ -1,0 +1,345 @@
+{
+  "entities": {
+    "DeviceStatus": {
+      "title": "DeviceStatus",
+      "description": "Real-time security, GPS, battery, connectivity, SIM, and remote alarm state of a protected user device.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated owner UID."
+        },
+        "deviceName": {
+          "type": "string",
+          "description": "Human-readable device label."
+        },
+        "deviceModel": {
+          "type": "string",
+          "description": "Hardware manufacturer and model."
+        },
+        "isProtected": {
+          "type": "boolean",
+          "description": "Whether TerraGuard anti-theft protection is armed."
+        },
+        "remoteAlarmActive": {
+          "type": "boolean",
+          "description": "Remote trigger state for the loud device alarm."
+        },
+        "alarmOverrideSilent": {
+          "type": "boolean",
+          "description": "Whether the alarm uses ALARM audio stream to override silent mode."
+        },
+        "latitude": {
+          "type": "number",
+          "description": "Last known latitude in decimal degrees."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "Last known longitude in decimal degrees."
+        },
+        "accuracyMeters": {
+          "type": "number",
+          "description": "Horizontal GPS accuracy in meters."
+        },
+        "batteryPercent": {
+          "type": "integer",
+          "description": "Remaining battery percentage (0 to 100)."
+        },
+        "isCharging": {
+          "type": "boolean",
+          "description": "Whether the device is currently charging."
+        },
+        "isOnline": {
+          "type": "boolean",
+          "description": "Whether the device currently has validated internet access."
+        },
+        "networkType": {
+          "type": "string",
+          "description": "Current network transport type (Wi-Fi, Cellular, Offline)."
+        },
+        "simFingerprint": {
+          "type": "string",
+          "description": "Baseline or current SIM profile hash/signature."
+        },
+        "simCarrier": {
+          "type": "string",
+          "description": "Detected SIM carrier name."
+        },
+        "simAlertTriggered": {
+          "type": "boolean",
+          "description": "Whether a SIM change mismatch was detected."
+        },
+        "ownerAlertEmail": {
+          "type": "string",
+          "description": "Owner email address for automated security alert payloads."
+        },
+        "lastLocationAtMillis": {
+          "type": "integer",
+          "description": "Epoch milliseconds of the most recent GPS location fix."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "deviceName",
+        "deviceModel",
+        "isProtected",
+        "remoteAlarmActive",
+        "alarmOverrideSilent",
+        "latitude",
+        "longitude",
+        "accuracyMeters",
+        "batteryPercent",
+        "isCharging",
+        "isOnline",
+        "networkType",
+        "simFingerprint",
+        "simCarrier",
+        "simAlertTriggered",
+        "ownerAlertEmail",
+        "lastLocationAtMillis",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "LocationRecord": {
+      "title": "LocationRecord",
+      "description": "Immutable GPS tracking breadcrumb with accuracy, battery, connectivity, and source event.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated owner UID."
+        },
+        "deviceId": {
+          "type": "string",
+          "description": "Parent device identifier."
+        },
+        "latitude": {
+          "type": "number",
+          "description": "Latitude in decimal degrees."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "Longitude in decimal degrees."
+        },
+        "accuracyMeters": {
+          "type": "number",
+          "description": "Horizontal accuracy radius in meters."
+        },
+        "batteryPercent": {
+          "type": "integer",
+          "description": "Battery percentage at fix time."
+        },
+        "isOnline": {
+          "type": "boolean",
+          "description": "Online connectivity flag at fix time."
+        },
+        "provider": {
+          "type": "string",
+          "description": "Location provider name (Fused, GPS, Network)."
+        },
+        "sourceEvent": {
+          "type": "string",
+          "description": "Trigger source for this GPS record."
+        },
+        "recordedAtMillis": {
+          "type": "integer",
+          "description": "Epoch milliseconds when the fix was recorded."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "deviceId",
+        "latitude",
+        "longitude",
+        "accuracyMeters",
+        "batteryPercent",
+        "isOnline",
+        "provider",
+        "sourceEvent",
+        "recordedAtMillis",
+        "createdAt"
+      ]
+    },
+    "GeofenceZone": {
+      "title": "GeofenceZone",
+      "description": "User-configured safe zone perimeter monitored via Android GeofencingClient.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated owner UID."
+        },
+        "name": {
+          "type": "string",
+          "description": "Label for the safe zone (e.g., Home, Office)."
+        },
+        "latitude": {
+          "type": "number",
+          "description": "Center latitude."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "Center longitude."
+        },
+        "radiusMeters": {
+          "type": "number",
+          "description": "Perimeter radius in meters."
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Whether exit monitoring is enabled for this zone."
+        },
+        "lastStatus": {
+          "type": "string",
+          "enum": ["INSIDE", "OUTSIDE", "UNKNOWN"],
+          "description": "Last evaluated perimeter status."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "name",
+        "latitude",
+        "longitude",
+        "radiusMeters",
+        "isActive",
+        "lastStatus",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SecurityAlert": {
+      "title": "SecurityAlert",
+      "description": "Security incident log entry synced for remote owner visibility and email alert dispatch.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated owner UID."
+        },
+        "deviceId": {
+          "type": "string",
+          "description": "Originating device ID."
+        },
+        "deviceName": {
+          "type": "string",
+          "description": "Originating device name."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "GEOFENCE_EXIT",
+            "INTRUDER_PIN",
+            "SIM_CHANGE",
+            "REMOTE_ALARM",
+            "INTERNET_RECONNECTED",
+            "OFFLINE_LOCATION_SAVED",
+            "BATTERY_LOW"
+          ],
+          "description": "Category of security incident."
+        },
+        "title": {
+          "type": "string",
+          "description": "Short alert headline."
+        },
+        "message": {
+          "type": "string",
+          "description": "Detailed security alert body."
+        },
+        "latitude": {
+          "type": "number",
+          "description": "Latitude captured with the alert."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "Longitude captured with the alert."
+        },
+        "accuracyMeters": {
+          "type": "number",
+          "description": "GPS accuracy in meters."
+        },
+        "batteryPercent": {
+          "type": "integer",
+          "description": "Remaining battery percentage."
+        },
+        "emailStatus": {
+          "type": "string",
+          "enum": ["QUEUED", "DISPATCHED", "NOT_CONFIGURED"],
+          "description": "Status of automated owner email alert delivery."
+        },
+        "hasPhotoEvidence": {
+          "type": "boolean",
+          "description": "Whether an intruder photo was captured locally for this alert."
+        },
+        "occurredAtMillis": {
+          "type": "integer",
+          "description": "Epoch milliseconds when the incident occurred."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "deviceId",
+        "deviceName",
+        "type",
+        "title",
+        "message",
+        "latitude",
+        "longitude",
+        "accuracyMeters",
+        "batteryPercent",
+        "emailStatus",
+        "hasPhotoEvidence",
+        "occurredAtMillis",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/devices/{deviceId}": {
+      "schema": { "$ref": "#/entities/DeviceStatus" },
+      "description": "Per-user registered devices with live anti-theft telemetry and remote alarm state."
+    },
+    "/users/{userId}/devices/{deviceId}/locations/{locationId}": {
+      "schema": { "$ref": "#/entities/LocationRecord" },
+      "description": "GPS tracking breadcrumbs belonging to a registered device."
+    },
+    "/users/{userId}/geofences/{geofenceId}": {
+      "schema": { "$ref": "#/entities/GeofenceZone" },
+      "description": "User-defined safe zones for geofence exit alerting."
+    },
+    "/users/{userId}/alerts/{alertId}": {
+      "schema": { "$ref": "#/entities/SecurityAlert" },
+      "description": "Security alerts and email dispatch records scoped to the owner."
+    }
+  }
+}

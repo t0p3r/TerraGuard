@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">TerraGuard</string>
+    <string name="app_subtitle">Anti-Theft &amp; GPS Security</string>
+    <string name="device_admin_label">TerraGuard Lock Monitor</string>
+    <string name="device_admin_description">Detects repeated incorrect device PIN or password attempts so TerraGuard can record security evidence.</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="sign_out">Sign out</string>
+    <string name="error_no_email_app">No email app found on this device.</string>
+</resources>

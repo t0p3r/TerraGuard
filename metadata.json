@@ -1,0 +1,6 @@
+{
+  "name": "TerraGuard",
+  "description": "Anti-theft, GPS tracking, geofencing, intruder security gallery, and remote alarm protection.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

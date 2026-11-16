@@ -1,0 +1,240 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidDeviceStatus(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.deviceName is string && data.deviceName.size() >= 1 && data.deviceName.size() <= 80 &&
+             data.deviceModel is string && data.deviceModel.size() <= 80 &&
+             data.isProtected is bool &&
+             data.remoteAlarmActive is bool &&
+             data.alarmOverrideSilent is bool &&
+             data.latitude is number && data.latitude >= -90 && data.latitude <= 90 &&
+             data.longitude is number && data.longitude >= -180 && data.longitude <= 180 &&
+             data.accuracyMeters is number && data.accuracyMeters >= 0 && data.accuracyMeters <= 100000 &&
+             data.batteryPercent is int && data.batteryPercent >= 0 && data.batteryPercent <= 100 &&
+             data.isCharging is bool &&
+             data.isOnline is bool &&
+             data.networkType is string && data.networkType.size() <= 40 &&
+             data.simFingerprint is string && data.simFingerprint.size() <= 160 &&
+             data.simCarrier is string && data.simCarrier.size() <= 80 &&
+             data.simAlertTriggered is bool &&
+             data.ownerAlertEmail is string && data.ownerAlertEmail.size() <= 160 &&
+             data.lastLocationAtMillis is int && data.lastLocationAtMillis >= 0 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidLocationRecord(data, expectedDeviceId) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.deviceId is string && data.deviceId == expectedDeviceId &&
+             data.latitude is number && data.latitude >= -90 && data.latitude <= 90 &&
+             data.longitude is number && data.longitude >= -180 && data.longitude <= 180 &&
+             data.accuracyMeters is number && data.accuracyMeters >= 0 && data.accuracyMeters <= 100000 &&
+             data.batteryPercent is int && data.batteryPercent >= 0 && data.batteryPercent <= 100 &&
+             data.isOnline is bool &&
+             data.provider is string && data.provider.size() <= 40 &&
+             data.sourceEvent is string && data.sourceEvent.size() >= 1 && data.sourceEvent.size() <= 40 &&
+             data.recordedAtMillis is int && data.recordedAtMillis >= 0 &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    function isValidGeofenceZone(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 80 &&
+             data.latitude is number && data.latitude >= -90 && data.latitude <= 90 &&
+             data.longitude is number && data.longitude >= -180 && data.longitude <= 180 &&
+             data.radiusMeters is number && data.radiusMeters >= 50 && data.radiusMeters <= 50000 &&
+             data.isActive is bool &&
+             data.lastStatus is string && data.lastStatus in ['INSIDE', 'OUTSIDE', 'UNKNOWN'] &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidSecurityAlert(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.deviceId is string && data.deviceId.size() >= 1 && data.deviceId.size() <= 128 &&
+             data.deviceName is string && data.deviceName.size() <= 80 &&
+             data.type is string && data.type in [
+               'GEOFENCE_EXIT',
+               'INTRUDER_PIN',
+               'SIM_CHANGE',
+               'REMOTE_ALARM',
+               'INTERNET_RECONNECTED',
+               'OFFLINE_LOCATION_SAVED',
+               'BATTERY_LOW'
+             ] &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
+             data.message is string && data.message.size() >= 1 && data.message.size() <= 500 &&
+             data.latitude is number && data.latitude >= -90 && data.latitude <= 90 &&
+             data.longitude is number && data.longitude >= -180 && data.longitude <= 180 &&
+             data.accuracyMeters is number && data.accuracyMeters >= 0 && data.accuracyMeters <= 100000 &&
+             data.batteryPercent is int && data.batteryPercent >= 0 && data.batteryPercent <= 100 &&
+             data.emailStatus is string && data.emailStatus in ['QUEUED', 'DISPATCHED', 'NOT_CONFIGURED'] &&
+             data.hasPhotoEvidence is bool &&
+             data.occurredAtMillis is int && data.occurredAtMillis >= 0 &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    match /users/{userId} {
+
+      match /devices/{deviceId} {
+        allow list: if isSignedIn() && request.auth.uid == userId;
+        allow get: if isSignedIn() && request.auth.uid == userId && isValidId(deviceId);
+
+        allow create: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(deviceId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'deviceName', 'deviceModel', 'isProtected',
+                           'remoteAlarmActive', 'alarmOverrideSilent',
+                           'latitude', 'longitude', 'accuracyMeters',
+                           'batteryPercent', 'isCharging', 'isOnline', 'networkType',
+                           'simFingerprint', 'simCarrier', 'simAlertTriggered',
+                           'ownerAlertEmail', 'lastLocationAtMillis', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'deviceName', 'deviceModel', 'isProtected',
+                           'remoteAlarmActive', 'alarmOverrideSilent',
+                           'latitude', 'longitude', 'accuracyMeters',
+                           'batteryPercent', 'isCharging', 'isOnline', 'networkType',
+                           'simFingerprint', 'simCarrier', 'simAlertTriggered',
+                           'ownerAlertEmail', 'lastLocationAtMillis', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidDeviceStatus(incoming());
+
+        allow update: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(deviceId) &&
+                         isValidDeviceStatus(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         (
+                           incoming().diff(existing()).affectedKeys().hasOnly(['remoteAlarmActive', 'alarmOverrideSilent', 'updatedAt']) ||
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'deviceName', 'deviceModel', 'isProtected',
+                             'remoteAlarmActive', 'alarmOverrideSilent',
+                             'latitude', 'longitude', 'accuracyMeters',
+                             'batteryPercent', 'isCharging', 'isOnline', 'networkType',
+                             'simFingerprint', 'simCarrier', 'simAlertTriggered',
+                             'ownerAlertEmail', 'lastLocationAtMillis', 'updatedAt'
+                           ])
+                         );
+
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(deviceId);
+
+        match /locations/{locationId} {
+          allow list: if isSignedIn() && request.auth.uid == userId && isValidId(deviceId);
+          allow get: if isSignedIn() && request.auth.uid == userId && isValidId(deviceId) && isValidId(locationId);
+
+          allow create: if isSignedIn() &&
+                           request.auth.uid == userId &&
+                           isValidId(deviceId) &&
+                           isValidId(locationId) &&
+                           incoming().keys().hasAll([
+                             'userId', 'deviceId', 'latitude', 'longitude', 'accuracyMeters',
+                             'batteryPercent', 'isOnline', 'provider', 'sourceEvent',
+                             'recordedAtMillis', 'createdAt'
+                           ]) &&
+                           incoming().keys().hasOnly([
+                             'userId', 'deviceId', 'latitude', 'longitude', 'accuracyMeters',
+                             'batteryPercent', 'isOnline', 'provider', 'sourceEvent',
+                             'recordedAtMillis', 'createdAt'
+                           ]) &&
+                           isValidLocationRecord(incoming(), deviceId) &&
+                           exists(/databases/$(database)/documents/users/$(userId)/devices/$(deviceId));
+
+          allow update: if false;
+          allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(deviceId) && isValidId(locationId);
+        }
+      }
+
+      match /geofences/{geofenceId} {
+        allow list: if isSignedIn() && request.auth.uid == userId;
+        allow get: if isSignedIn() && request.auth.uid == userId && isValidId(geofenceId);
+
+        allow create: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(geofenceId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'name', 'latitude', 'longitude', 'radiusMeters',
+                           'isActive', 'lastStatus', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'name', 'latitude', 'longitude', 'radiusMeters',
+                           'isActive', 'lastStatus', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidGeofenceZone(incoming());
+
+        allow update: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(geofenceId) &&
+                         isValidGeofenceZone(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         (
+                           incoming().diff(existing()).affectedKeys().hasOnly(['isActive', 'lastStatus', 'updatedAt']) ||
+                           incoming().diff(existing()).affectedKeys().hasOnly(['name', 'latitude', 'longitude', 'radiusMeters', 'isActive', 'lastStatus', 'updatedAt'])
+                         );
+
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(geofenceId);
+      }
+
+      match /alerts/{alertId} {
+        allow list: if isSignedIn() && request.auth.uid == userId;
+        allow get: if isSignedIn() && request.auth.uid == userId && isValidId(alertId);
+
+        allow create: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(alertId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'deviceId', 'deviceName', 'type', 'title', 'message',
+                           'latitude', 'longitude', 'accuracyMeters', 'batteryPercent',
+                           'emailStatus', 'hasPhotoEvidence', 'occurredAtMillis', 'createdAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'deviceId', 'deviceName', 'type', 'title', 'message',
+                           'latitude', 'longitude', 'accuracyMeters', 'batteryPercent',
+                           'emailStatus', 'hasPhotoEvidence', 'occurredAtMillis', 'createdAt'
+                         ]) &&
+                         isValidSecurityAlert(incoming());
+
+        allow update: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(alertId) &&
+                         isValidSecurityAlert(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['emailStatus']);
+
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(alertId);
+      }
+    }
+  }
+}
